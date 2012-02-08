@@ -2,7 +2,7 @@
 
 module Dcmgr::Models
   # VLAN  lease information
-  class VlanLease < AccountResource
+  class VlanLease < AccountResource(:vlan_leases)
     taggable 'vlan'
 
     one_to_many :networks

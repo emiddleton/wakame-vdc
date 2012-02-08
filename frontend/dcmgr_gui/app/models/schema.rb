@@ -24,9 +24,11 @@ module Schema
   end
 
   def create!
-    Sequel::MySQL.default_charset = 'utf8'
-    Sequel::MySQL.default_engine = 'InnoDB'
-
+    begin
+      Sequel::MySQL.default_charset = 'utf8'
+      Sequel::MySQL.default_engine = 'InnoDB'
+    rescue
+    end
     models.each { |model|
       model.create_table!
     }

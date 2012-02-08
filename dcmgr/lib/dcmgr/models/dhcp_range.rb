@@ -4,8 +4,7 @@ require 'ipaddress'
 
 module Dcmgr::Models
   # Dynamic IP address range in the network.
-  class DhcpRange < BaseNew
-
+  class DhcpRange < BaseNew(:dhcp_ranges)
     many_to_one :network
 
     def validate

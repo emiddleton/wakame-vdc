@@ -2,10 +2,10 @@
 
 require 'strscan'
 require 'ipaddress'
+require 'dcmgr/models/base_new'
 
 module Dcmgr::Models
-  class SecurityGroupRule < BaseNew
-
+  class SecurityGroupRule < BaseNew(:security_group_rules)
     many_to_one :security_group
 
     def to_hash

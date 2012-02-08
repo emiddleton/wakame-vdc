@@ -101,11 +101,11 @@ module Dcmgr
           end
 
           unless valid_nic?(bridge_if)
-            sh("/usr/sbin/brctl addbr %s",    [bridge_if])
-            sh("/usr/sbin/brctl setfd %s 0",    [bridge_if])
+            sh("/sbin/brctl addbr %s",    [bridge_if])
+            sh("/sbin/brctl setfd %s 0",    [bridge_if])
             # There is null case for the forward interface to create closed bridge network.
             if fwd_if
-              sh("/usr/sbin/brctl addif %s %s", [bridge_if, fwd_if])
+              sh("/sbin/brctl addif %s %s", [bridge_if, fwd_if])
             end
           end
         }
@@ -131,7 +131,7 @@ module Dcmgr
         sh("/sbin/losetup #{lodev} '#{@hva_ctx.metadata_img_path}'")
         sh("mkfs.vfat -n METADATA '#{@hva_ctx.metadata_img_path}'")
         Dir.mkdir("#{@hva_ctx.inst_data_dir}/tmp") unless File.exists?("#{@hva_ctx.inst_data_dir}/tmp")
-        sh("/bin/mount -t vfat #{lodev} '#{@hva_ctx.inst_data_dir}/tmp'")
+        sh("/bin/mount -o iocharset=utf8 -t vfat #{lodev} '#{@hva_ctx.inst_data_dir}/tmp'")
 
         vnic = @inst[:instance_nics].first || {}
         # Appendix B: Metadata Categories

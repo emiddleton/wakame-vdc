@@ -2,7 +2,7 @@
 
 module Dcmgr::Models
   # Physical network interface
-  class NetworkPort < BaseNew
+  class NetworkPort < BaseNew(:network_ports)
     taggable 'port'
 
     many_to_one :network

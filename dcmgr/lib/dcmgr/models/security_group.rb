@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 module Dcmgr::Models
-  class SecurityGroup < AccountResource
+  class SecurityGroup < AccountResource(:security_groups)
     taggable 'sg'
 
     one_to_many :security_group_rules

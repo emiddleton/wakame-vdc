@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 module Dcmgr::Models
-  class Account < BaseNew
+  class Account < BaseNew(:accounts)
+
     taggable 'a'
     # pk has to be overwritten by the STI subclasses.
     unrestrict_primary_key
@@ -75,7 +76,10 @@ module Dcmgr::Models
           raise ArgumentError
         end
 
-        c = Class.new(Account, &blk)
+        c = Class.new(Account) do |cls|
+          cls.set_dataset(:accounts)
+          cls.instance_exec &blk
+        end
         self.const_set(class_name.to_sym, c)
         Account.sti_model_map[c.uuid] = c
         Account.sti_key_map[c.to_s] = c.uuid

@@ -189,7 +189,7 @@ function cleanup {
   ps -ef | egrep '[t]gtd' -q && {
     /sbin/iscsiadm -m node -u
     /usr/sbin/tgt-admin --dump | grep ^\<target | awk '{print $2}' | sed 's,>$,,' | while read iqn; do echo ... ${iqn}; /usr/sbin/tgt-admin --delete ${iqn}; done
-    initctl restart tgt || /etc/init.d/tgtd restart
+    init_control restart tgt || /etc/init.d/tgtd restart
   }
 
   case ${hypervisor} in
@@ -250,6 +250,8 @@ function cleanup {
   [ -d ${tmp_path}/snap/${account_id} ] && {
     for i in ${tmp_path}/snap/${account_id}/*; do rm -f ${i}; done
   }
+  
+  echo "cleanup completed"
 }
 
 function cleanup_multiple {
@@ -363,3 +365,16 @@ function run2bg() {
   echo "[pid:${pid}]# '$*'"
   pids="${pids} ${pid}"
 }
+
+function init_control() {
+  action = $1
+  initscript = $2
+  if [ ${DISTRIB_ID} == 'ubuntu' ]; then
+    initctl $action $initscript
+  elif [ ${DISTRIB_ID} == 'gentoo' ]; then
+    /etc/init.d/$initscript $action
+  else
+    abort "init_control() function does not support distribution ${DISTRIB_ID}"
+  fi
+}
+

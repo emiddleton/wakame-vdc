@@ -1,7 +1,8 @@
 source :rubygems
 
 gem 'rails', '3.0.11'
-gem 'mysql','2.8.1'
+#gem 'mysql','2.8.1'
+gem 'pg', '0.11.0'
 gem 'sequel','3.27.0'
 gem 'json','1.6.3'
 gem 'oauth','0.4.1'

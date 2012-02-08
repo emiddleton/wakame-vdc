@@ -33,7 +33,8 @@ task :gem do
       %w(Rakefile config.ru LICENSE NOTICE INSTALL.txt INSTALL-API.txt tmp)
 
     s.add_dependency "rails", '3.0.11'
-    s.add_dependency 'mysql','2.8.1'
+#    s.add_dependency 'mysql','2.8.1'
+    s.add_dependency 'pg','0.11.0'
     s.add_dependency 'sequel','3.27.0'
     s.add_dependency 'json','1.6.3'
     s.add_dependency 'oauth','0.4.1'

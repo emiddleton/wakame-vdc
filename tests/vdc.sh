@@ -27,6 +27,13 @@ DISTRIB_ID=$(echo "${DISTRIB_ID:-ubuntu}" | tr 'A-Z' 'a-z')
   DISTRIB_RELEASE=$(basename ${DISTRIB_RELEASE})
 }
 
+[[ -f /etc/make.conf ]] && {
+  DISTRIB_ID=gentoo
+  DISTRIB_RELEASE=$(ls -d ${builder_path}/${DISTRIB_ID}/* | tail -1)
+  [ -z ${DISTRIB_RELEASE} ] && abort "Cannot detect your using distribution."
+  DISTRIB_RELEASE=$(basename ${DISTRIB_RELEASE})
+}
+
 ipaddr=$(/sbin/ip route get 8.8.8.8 | head -1 | awk '{print $7}')
 
 account_id=a-shpoolxx
@@ -73,7 +80,44 @@ vmimage_file=${vmimage_uuid}.qcow2
 vmimage_s3="http://dlc.wakame.axsh.jp.s3.amazonaws.com/demo/vmimage/${vmimage_file}.gz"
 vmimage_arch=32
 
-# mysql
+database_type=${database_type:-mysql}
+
+if [ $database_type == 'mysql' ]; then
+  # mysql
+  db_admin_login="mysql -uroot"
+elif [ $database_type == 'postgresql' ]; then
+  db_admin_login="psql -Upostgres"
+else
+  echo "unknown database type \"${database_type}\""
+  exit -1
+fi
+
+function db_drop() {
+  db_name=$1
+  echo "dropping database ${db_name}.."
+  case $database_type in
+  postgresql)
+    psql -Upostgres postgres -c "DROP DATABASE ${db_name}"
+  ;;
+  mysql)
+    mysql -uroot -e "DROP DATABASE ${db_name}"
+  ;;
+  esac
+}
+
+function db_create() {
+  db_name=$1
+  echo "creating database ${db_name}.."
+  case $database_type in
+  postgresql)
+    psql -Upostgres postgres -c "CREATE DATABASE ${db_name}"
+  ;;
+  mysql)
+    mysql -uroot -e "CREATE DATABASE ${db_name}"
+  ;;
+  esac
+}
+
 dcmgr_dbname=wakame_dcmgr
 dcmgr_dbuser=root
 webui_dbname=wakame_dcmgr_gui
@@ -134,15 +178,15 @@ shopt -s expand_aliases
 function init_db() {
   dbnames="wakame_dcmgr wakame_dcmgr_gui"
   for dbname in ${dbnames}; do
-    yes | mysqladmin -uroot drop   ${dbname}
-    mysqladmin -uroot create ${dbname}
+    yes | db_drop ${dbname}
+    db_create ${dbname}
   done
 
   cd ${prefix_path}/dcmgr
-  rake db:init
+  rake db:init --trace
 
   cd ${prefix_path}/frontend/dcmgr_gui
-  rake db:init db:sample_data admin:generate_i18n oauth:create_table
+  rake db:init db:sample_data admin:generate_i18n oauth:create_table --trace
 
   echo ... rake oauth:create_consumer[${account_id}]
   local oauth_keys=$(rake oauth:create_consumer[${account_id}] | egrep -v '^\(in')
@@ -177,12 +221,21 @@ EOS
 }
 
 function run_standalone() {
-  # forece reset and restart rabbitmq
-  /etc/init.d/rabbitmq-server status && /etc/init.d/rabbitmq-server stop
-  [ -f /var/lib/rabbitmq/mnesia/ ] && rm -rf /var/lib/rabbitmq/mnesia/
-  /etc/init.d/rabbitmq-server start
+  
+  if [ -x /etc/init.d/rabbitmq-server ]; then
+    RABBITMQ_INIT='/etc/init.d/rabbitmq-server'
+  elif [ -x /etc/init.d/rabbitmq ]; then
+    RABBITMQ_INIT='/etc/init.d/rabbitmq'
+  else
+    abort "rabbitmq init script not found is rabbitmq installed?"
+  fi
 
-  [[ -x /etc/init.d/tgt ]] && { initctl restart tgt; }
+  # force reset and restart rabbitmq
+  ${RABBITMQ_INIT} status && ${RABBITMQ_INIT} stop
+  [ -f /var/lib/rabbitmq/mnesia/ ] && rm -rf /var/lib/rabbitmq/mnesia/
+  ${RABBITMQ_INIT} start
+
+  [[ -x /etc/init.d/tgt ]] && { init_control restart tgt; }
 
   init_db
   sleep 1
@@ -245,7 +298,7 @@ function run_multiple() {
   [ -f /var/lib/rabbitmq/mnesia/ ] && rm -rf /var/lib/rabbitmq/mnesia/
   /etc/init.d/rabbitmq-server start
 
-  [[ -x /etc/init.d/tgt ]] && { initctl restart tgt; }
+  [[ -x /etc/init.d/tgt ]] && { init_control restart tgt; }
 
   demo_resource="92_generate-demo-resource.sh"
   init_db
@@ -320,7 +373,7 @@ EOF
   # Wait for until all agent nodes become online.
   retry 10 <<'EOF' || abort "Offline nodes still exist."
 sleep 5
-[ ${nodes} -eq "`echo "select state from node_states where state='online'" | mysql -uroot wakame_dcmgr | wc -l`" ]
+[ ${nodes} -eq "`echo "select state from node_states where state='online'" | $(${db_admin_login} wakame_dcmgr) | wc -l`" ]
 EOF
 }
 
@@ -338,7 +391,7 @@ EOF
   for i in ${storage_nodes}; do node_num=`expr ${node_num} + 1`; done
   retry 10 <<'EOF' || abort "Offline nodes still exist."
 sleep 5
-[ ${node_num} -eq "`echo "select state from node_states where state='online'" | mysql -uroot wakame_dcmgr | wc -l`" ]
+[ ${node_num} -eq "`echo "select state from node_states where state='online'" | $(${db_admin_login} wakame_dcmgr) | wc -l`" ]
 EOF
 }
 
@@ -369,6 +422,7 @@ cleanup
 excode=0
 case ${mode} in
   install)
+    echo "running setup"
     setup_base
     ;;
   standalone:ci)

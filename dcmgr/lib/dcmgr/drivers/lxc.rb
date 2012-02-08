@@ -34,7 +34,7 @@ module Dcmgr
         # metadata drive
         metadata_path = "#{ctx.inst_data_dir}/rootfs/metadata"
         Dir.mkdir(metadata_path) unless File.exists?(metadata_path)
-        sh("mount -t vfat -o loop -o ro #{ctx.metadata_img_path} #{metadata_path}")
+        sh("mount -t vfat -o iocharset=utf8,loop -o ro #{ctx.metadata_img_path} #{metadata_path}")
 
         config_path = create_config(ctx)
         create_fstab(ctx)

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 module Dcmgr::Models
-  class RequestLog < BaseNew
-
+  class RequestLog < BaseNew(:request_logs)
     plugin :serialization
     serialize_attributes :yaml, :params
 

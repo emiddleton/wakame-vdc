@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 module Dcmgr::Models
-  class VolumeSnapshot < AccountResource
+  class VolumeSnapshot < AccountResource(:volume_snapshots)
     taggable 'snap'
 
     STATE_TYPE_REGISTERING = "registering"

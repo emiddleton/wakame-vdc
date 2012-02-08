@@ -4,7 +4,7 @@ require 'ipaddress'
 
 module Dcmgr::Models
   # IP address lease information
-  class IpLease < BaseNew
+  class IpLease < BaseNew(:ip_leases)
     TYPE_AUTO=0
     TYPE_RESERVED=1
     TYPE_MANUAL=2

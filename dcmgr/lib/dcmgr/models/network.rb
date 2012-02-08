@@ -4,7 +4,7 @@ require 'ipaddress'
 
 module Dcmgr::Models
   # IP network definitions.
-  class Network < AccountResource
+  class Network < AccountResource(:networks)
     taggable 'nw'
 
     module IpLeaseMethods

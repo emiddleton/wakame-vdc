@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
+require 'dcmgr/models/account_resource'
+
 module Dcmgr::Models
   # Model class for running virtual instance.
-  class Instance < AccountResource
+  class Instance < AccountResource(:instances)
+
     taggable 'i'
 
     many_to_one :image

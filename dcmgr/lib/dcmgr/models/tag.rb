@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+require 'dcmgr/models/account_resource'
 module Dcmgr::Models
   # Tag is a label which groups arbitrary resource(s) having canonical
   # uuid. A tag object consists of three items: Account ID, Type, Name
@@ -40,7 +41,7 @@ module Dcmgr::Models
   # nw = Network['nw-44444']
   # nw.label_tag(t)
   # nw.label_tag('tag-xxxxx')
-  class Tag < AccountResource
+  class Tag < AccountResource(:tags)
     taggable('tag')
 
     many_to_one :account

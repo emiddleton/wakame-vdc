@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 module Dcmgr::Models
-  class FrontendSystem < BaseNew
-    
+  class FrontendSystem < BaseNew(:frontend_systems)
     plugin :single_table_inheritance, :kind
     
     def authenticate

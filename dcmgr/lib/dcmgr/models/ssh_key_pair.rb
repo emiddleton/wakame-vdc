@@ -4,7 +4,7 @@ require 'tmpdir'
 
 module Dcmgr::Models
   # SSH Key database for account.
-  class SshKeyPair < AccountResource
+  class SshKeyPair < AccountResource(:ssh_key_pairs)
     taggable 'ssh'
 
     def before_destroy

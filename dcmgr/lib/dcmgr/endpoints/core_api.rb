@@ -266,7 +266,7 @@ module Dcmgr
               end
 
               if params[:ha_enabled] == 'true'
-                i.ha_enabled = 1
+                i.ha_enabled = true
               end
             end
             instance.save

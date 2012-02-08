@@ -9,6 +9,7 @@ end
 
 #require 'logger' 
 #db.loggers << Logger.new(STDERR)
+begin
 if db.is_a?(Sequel::MySQL::Database)
   Sequel::MySQL.default_charset = 'utf8'
   Sequel::MySQL.default_collate = 'utf8_general_ci'
@@ -25,6 +26,8 @@ end
 [249, 250, 251, 252].each { |v|
   Sequel::MySQL::MYSQL_TYPES.delete(v)
 }
+rescue
+end
 
 # Set timezone to UTC
 Sequel.default_timezone = :utc

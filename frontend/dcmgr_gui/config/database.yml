@@ -1,19 +1,19 @@
 development:
-  adapter: mysql
+  adapter: postgres
   database: wakame_dcmgr_gui
   host: localhost
   user: wakame_dcmgr_gui
   password: passwd
 
 test:
-  adapter: mysql
+  adapter: postgres
   database: wakame_dcmgr_gui
   host: localhost
   user: wakame_dcmgr_gui
   password: passwd
 
 production:
-  adapter: mysql
+  adapter: postgres
   database: wakame_dcmgr_gui
   host: localhost
   user: wakame_dcmgr_gui

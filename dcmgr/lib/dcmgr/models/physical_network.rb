@@ -2,8 +2,7 @@
 
 module Dcmgr::Models
   # Physical network interface
-  class PhysicalNetwork < BaseNew
-
+  class PhysicalNetwork < BaseNew(:physical_networks)
     one_to_many :network
 
     def validate

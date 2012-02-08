@@ -2,7 +2,7 @@
 
 module Dcmgr::Models
   # Network interface for running instance.
-  class InstanceNic < BaseNew
+  class InstanceNic < BaseNew(:instance_nics)
     taggable 'vif'
 
     many_to_one :instance

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 module Dcmgr::Models
-  class Volume < AccountResource
+  class Volume < AccountResource(:volumes)
     taggable 'vol'
 
     STATUS_TYPE_REGISTERING = "registering"

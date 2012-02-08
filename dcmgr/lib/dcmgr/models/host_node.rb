@@ -3,7 +3,7 @@
 require 'isono/models/node_state'
 
 module Dcmgr::Models
-  class HostNode < AccountResource
+  class HostNode < AccountResource(:host_nodes)
     taggable 'hn'
 
     HYPERVISOR_XEN_34='xen-3.4'

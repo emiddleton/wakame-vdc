@@ -5,7 +5,8 @@ namespace :db do
   end
   
   task :sample_data => :environment do
-    User.create(:uuid => '00000000',
+    User.create(:name=>'',
+                :uuid => '00000000',
                 :login_id => 'wakame',
                 :password => User.encrypt_password('wakame'),
                 :primary_account_id => '00000000'
@@ -16,7 +17,8 @@ namespace :db do
                    :enable => 1
                    )
                    
-    User.create(:uuid => 'shpoolxx',
+    User.create(:name=>'',
+               :uuid => 'shpoolxx',
                :login_id => 'demo',
                :password => User.encrypt_password('demo'),
                :primary_account_id => 'shpoolxx'

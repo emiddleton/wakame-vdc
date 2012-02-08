@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 module Dcmgr::Models
-  class InstanceSpec < AccountResource
+  class InstanceSpec < AccountResource(:instance_specs)
     taggable 'is'
 
     # serialization plugin must be defined at the bottom of all class

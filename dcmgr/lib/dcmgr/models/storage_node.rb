@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 require 'isono/models/node_state'
+require 'dcmgr/models/account_resource'
 
 module Dcmgr::Models
-  class StorageNode < AccountResource
+  class StorageNode < AccountResource(:storage_nodes)
     taggable 'sn'
 
     BACKINGSTORE_ZFS = 'zfs'

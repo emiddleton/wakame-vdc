@@ -406,132 +406,140 @@ module Dcmgr::Models
     end
   end
 
-  class BaseNew < Sequel::Model
-
-    def to_hash()
-      self.values.dup
-    end
-    
+  module BaseNew
     LOCK_TABLES_KEY='__locked_tables'
-
-    def self.default_row_lock_mode=(mode)
-      raise ArgumentError unless [nil, :share, :update].member?(mode)
-      @default_row_lock_mode = mode
-    end
-    
-    def self.lock!(mode=nil)
-      raise ArgumentError unless [nil, :share, :update].member?(mode)
-      mode ||= @default_row_lock_mode
-      locktbls = Thread.current[LOCK_TABLES_KEY]
-      if locktbls
-        locktbls[self.db.uri.to_s + @dataset.first_source_alias.to_s]=mode
+    module ClassMethods
+      def default_row_lock_mode=(mode)
+        raise ArgumentError unless [nil, :share, :update].member?(mode)
+        @default_row_lock_mode = mode
       end
-    end
     
-    def self.unlock!
-      locktbls = Thread.current[LOCK_TABLES_KEY]
-      if locktbls
-        locktbls.delete(self.db.uri.to_s + @dataset.first_source_alias.to_s)
-      end
-    end
-    
-    def self.dataset
-      locktbls = Thread.current[LOCK_TABLES_KEY]
-      if locktbls && (mode = locktbls[self.db.uri.to_s + @dataset.first_source_alias.to_s])
-        # lock mode: :share or :update
-        @dataset.opts = @dataset.opts.merge({:lock=>mode})
-      else
-        @dataset.opts = @dataset.opts.merge({:lock=>nil})
-      end
-      @dataset
-    end
-    
-    
-    
-    def self.Proxy(klass)
-      colnames = klass.schema.columns.map {|i| i[:name] }
-      colnames.delete_if(klass.primary_key) if klass.restrict_primary_key?
-      s = ::Struct.new(*colnames) do
-        def to_hash
-          n = {}
-          self.each_pair { |k,v|
-            n[k.to_sym]=v
-          }
-          n
+      def lock!(mode=nil)
+        raise ArgumentError unless [nil, :share, :update].member?(mode)
+        mode ||= @default_row_lock_mode
+        locktbls = Thread.current[LOCK_TABLES_KEY]
+        if locktbls
+          locktbls[self.db.uri.to_s + @dataset.first_source_alias.to_s]=mode
         end
       end
-      s
-    end
-
-    # Returns true if this Model has time stamps
-    def with_timestamps?
-      self.columns.include?(:created_at) && self.columns.include?(:updated_at)
-    end
-
-    # Callback when the initial data is setup to the database.
-    def self.install_data
-      install_data_hooks.each{|h| h.call }
-    end
-
-    # Add callbacks to setup the initial data. The hooks will be
-    # called when Model1.install_data() is called.
-    # 
-    # class Model1 < Base
-    #   install_data_hooks do
-    #     Model1.create({:col1=>1, :col2=>2})
-    #   end
-    # end
-    def self.install_data_hooks(&blk)
-      @install_data_hooks ||= []
-      if blk
-        @install_data_hooks << blk
+    
+      def unlock!
+        locktbls = Thread.current[LOCK_TABLES_KEY]
+        if locktbls
+          locktbls.delete(self.db.uri.to_s + @dataset.first_source_alias.to_s)
+        end
       end
-      @install_data_hooks
-    end
+    
+      def dataset
+        locktbls = Thread.current[LOCK_TABLES_KEY]
+        if locktbls && (mode = locktbls[self.db.uri.to_s + @dataset.first_source_alias.to_s])
+          # lock mode: :share or :update
+          @dataset.opts = @dataset.opts.merge({:lock=>mode})
+        else
+          @dataset.opts = @dataset.opts.merge({:lock=>nil})
+        end
+        @dataset
+      end
+     
+      def Proxy(klass)
+        colnames = klass.schema.columns.map {|i| i[:name] }
+        colnames.delete_if(klass.primary_key) if klass.restrict_primary_key?
+        s = ::Struct.new(*colnames) do
+          def to_hash
+            n = {}
+            self.each_pair { |k,v|
+              n[k.to_sym]=v
+            }
+            n
+          end
+        end
+        s
+      end
+
+      # Callback when the initial data is setup to the database.
+      def install_data
+        install_data_hooks.each{|h| h.call }
+      end
+
+      # Add callbacks to setup the initial data. The hooks will be
+      # called when Model1.install_data() is called.
+      # 
+      # class Model1 < Base
+      #   install_data_hooks do
+      #     Model1.create({:col1=>1, :col2=>2})
+      #   end
+      # end
+      def install_data_hooks(&blk)
+        @install_data_hooks ||= []
+        if blk
+          @install_data_hooks << blk
+        end
+        @install_data_hooks
+      end
 
 
-    private
-    def self.inherited(klass)
-      super
-      klass.set_dataset(db[klass.implicit_table_name])
+      private
 
-      klass.plugin InheritableSchema
-      klass.plugin :timestamps, :update_on_create=>true
-      klass.class_eval {
+        def inherited(klass)
+          super
+#          klass.set_dataset(db[klass.implicit_table_name])
 
-        # Add timestamp columns and set callbacks using Timestamps
-        # plugin.
-        #
-        # class Model1 < Base
-        #   with_timestamps
-        # end
-        def self.with_timestamps
-          self.schema_builders << proc {
-            unless has_column?(:created_at)
-              column(:created_at, Time, :null=>false)
-            end
-            unless has_column?(:updated_at)
-              column(:updated_at, Time, :null=>false)
-            end
-          }
+          klass.plugin InheritableSchema
+          klass.plugin :timestamps, :update_on_create=>true
+          klass.class_eval {
+
+            # Add timestamp columns and set callbacks using Timestamps
+            # plugin.
+            #
+            # class Model1 < Base
+            #   with_timestamps
+            # end
+            def self.with_timestamps
+              self.schema_builders << proc {
+                unless has_column?(:created_at)
+                  column(:created_at, Time, :null=>false)
+                end
+                unless has_column?(:updated_at)
+                  column(:updated_at, Time, :null=>false)
+                end
+              }
           
-          self.plugin :timestamps, :update_on_create=>true
+              self.plugin :timestamps, :update_on_create=>true
+            end
+
+            # Install Taggable module as Sequel plugin and set uuid_prefix.
+            # 
+            # class Model1 < Base
+            #   taggable 'm'
+            # end
+            def self.taggable(uuid_prefix)
+              return if self == BaseNew
+              self.plugin Taggable
+              self.uuid_prefix(uuid_prefix)
+            end
+
+          }
+
         end
 
-        # Install Taggable module as Sequel plugin and set uuid_prefix.
-        # 
-        # class Model1 < Base
-        #   taggable 'm'
-        # end
-        def self.taggable(uuid_prefix)
-          return if self == BaseNew
-          self.plugin Taggable
-          self.uuid_prefix(uuid_prefix)
-        end
-
-      }
-      
     end
-    
+
+    module InstanceMethods
+      def to_hash()
+        self.values.dup
+      end
+
+      # Returns true if this Model has time stamps
+      def with_timestamps?
+        self.columns.include?(:created_at) && self.columns.include?(:updated_at)
+      end
+    end
+  end
+
+  def self.BaseNew(ds)
+    klass = Sequel::Model(ds)
+    klass.plugin BaseNew
+    klass
   end
 end
+

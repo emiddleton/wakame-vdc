@@ -2,8 +2,7 @@
 
 module Dcmgr::Models
   # Per account quota limit for the VDC resources.
-  class Quota < BaseNew
-
+  class Quota < BaseNew(:quotas)
     def before_validation
       # sets default quota values from dcmgr.conf.
       self.instance_total_weight ||= Dcmgr.conf.account_instance_total_weight

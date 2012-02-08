@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+require 'dcmgr/models/base_new'
+require 'dcmgr/models/account_resource'
 module Dcmgr
   module Rack
     # Rack middleware for running initialization/setup procedure.

@@ -21,15 +21,17 @@ group :dcmgr do
   gem "sinatra", "1.2.6"
   gem "json", ">= 1.2.0"
   gem "sequel", "3.27.0"
-  gem "mysql", ">= 2.8.1"
+  gem "pg", "0.11.0"
+#  gem "mysql", ">= 2.8.1"
   gem "net-dhcp", ">= 1.1.0"
   gem "bit-struct", ">= 0.13.6"
   gem "racket", ">= 1.0.11"
 end
 
 group :collector do
+  gem "pg", "0.11.0"
   gem "sequel", "3.27.0"
-  gem "mysql", ">= 2.8.1"
+#  gem "mysql", ">= 2.8.1"
 end
 
 group :production do

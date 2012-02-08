@@ -2,8 +2,7 @@
 
 module Dcmgr::Models
   # MAC address lease information
-  class MacLease < BaseNew
-
+  class MacLease < BaseNew(:mac_leases)
     # register MAC address.
     # @params [String] 6 or 12 length of HEX value in string.
     def self.lease(mac_addr)
