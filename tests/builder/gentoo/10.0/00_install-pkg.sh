@@ -15,7 +15,9 @@ pkg="
  sys-apps/ethtool net-misc/vconfig
  net-misc/openssh dev-lang/ruby:1.8 net-misc/curl
  net-misc/rabbitmq-server
- app-emulation/qemu-kvm net-misc/bridge-utils
+ app-emulation/qemu-kvm
+ net-misc/bridge-utils
+ sys-apps/usermode-utilities
  net-dns/dnsmasq sys-block/open-iscsi
  www-servers/nginx dev-libs/libxml2  dev-libs/libxslt
  net-misc/ipcalc sys-fs/dosfstools

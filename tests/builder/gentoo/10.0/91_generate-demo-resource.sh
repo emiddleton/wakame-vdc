@@ -145,8 +145,20 @@ esac
 # vlan
 #shlog ./bin/vdc-manage vlan    add --tag-idb 1      --uuid vlan-demo1    --account-id ${account_id}
 #shlog ./bin/vdc-manage network add           --uuid   nw-demo1    --ipv4-gw ${ipv4_gw} --prefix ${prefix_len} --domain vdc.local --dns ${dns_server} --dhcp ${dhcp_server} --metadata ${metadata_server} --metadata-port ${metadata_port} --vlan-id 1 --description demo
-ipv4_gw="192.168.0.1"
-#range_end="192.168.0.254"
+
+# gentoo
+gw_dev=tap0
+ipaddr=192.168.2.1
+ipv4_gw="192.168.2.1"
+dns_server="192.168.2.1"
+dhcp_server="192.168.2.1"
+range_begin=192.168.2.1
+range_end="192.168.2.254"
+
+#tunctl -d ${gw_dev} && sleep 1 && tunctl -t ${gw_dev}
+echo 1 > /proc/sys/net/ipv4/ip_forward
+#ifconfig ${gw_dev} hw ether FE:FF:FF:FF:FF:FF ${ipaddr} broadcast 192.168.2.255 netmask 255.255.255.0
+
 # non vlan
 shlog ./bin/vdc-manage network add \
  --uuid nw-demo1 \
@@ -169,22 +181,21 @@ shlog ./bin/vdc-manage network add \
 shlog ./bin/vdc-manage network add \
  --uuid nw-demo5 --ipv4-network 10.101.0.0 --prefix 24 --domain vdc.local --metric 10
 # physical network
-shlog ./bin/vdc-manage network phy add eth0 --interface eth0
+shlog ./bin/vdc-manage network phy add tap0 --interface tap0
 # bridge only closed network
 shlog ./bin/vdc-manage network phy add null1 --null
 shlog ./bin/vdc-manage network phy add null2 --null
 # set forward interface(= physical network) from network
-shlog ./bin/vdc-manage network forward nw-demo1 eth0
-shlog ./bin/vdc-manage network forward nw-demo2 eth0
-shlog ./bin/vdc-manage network forward nw-demo3 eth0
+shlog ./bin/vdc-manage network forward nw-demo1 tap0
+shlog ./bin/vdc-manage network forward nw-demo2 tap0
+shlog ./bin/vdc-manage network forward nw-demo3 tap0
 shlog ./bin/vdc-manage network forward nw-demo4 null1
 shlog ./bin/vdc-manage network forward nw-demo5 null2
 
-# gentoo
-gw_dev=$(/sbin/ip route get 8.8.8.8 | head -1 | awk '{print $5}')
-ipaddr=$(/sbin/ip addr show ${gw_dev} | grep -w inet | awk '{print $2}')
-[ -z "${range_begin}" ] && range_begin=`ipcalc ${ipv4_gw} | awk '$1 == "HostMin:" { print $2 }'`
-[ -z "${range_end}"   ] && range_end=`ipcalc ${ipv4_gw} | awk '$1 == "HostMax:" { print $2 }'`
+#gw_dev=$(/sbin/ip route get 8.8.8.8 | head -1 | awk '{print $5}')
+#ipaddr=$(/sbin/ip addr show ${gw_dev} | grep -w inet | awk '{print $2}')
+#[ -z "${range_begin}" ] && range_begin=`ipcalc ${ipv4_gw} | awk '$1 == "HostMin:" { print $2 }'`
+#[ -z "${range_end}"   ] && range_end=`ipcalc ${ipv4_gw} | awk '$1 == "HostMax:" { print $2 }'`
 
 shlog ./bin/vdc-manage network dhcp addrange nw-demo1 $range_begin $range_end
 shlog ./bin/vdc-manage network dhcp addrange nw-demo2 10.100.0.61 10.100.0.65

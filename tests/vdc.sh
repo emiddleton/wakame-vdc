@@ -223,17 +223,23 @@ EOS
 function run_standalone() {
   
   if [ -x /etc/init.d/rabbitmq-server ]; then
-    RABBITMQ_INIT='/etc/init.d/rabbitmq-server'
-  elif [ -x /etc/init.d/rabbitmq ]; then
-    RABBITMQ_INIT='/etc/init.d/rabbitmq'
-  else
-    abort "rabbitmq init script not found is rabbitmq installed?"
-  fi
+    
+    # force reset and restart rabbitmq
+    /etc/init.d/rabbitmq-server status && /etc/init.d/rabbitmq-server stop
+    [ -d /var/lib/rabbitmq/mnesia/ ] && rm -rf /var/lib/rabbitmq/mnesia/
+    /etc/init.d/rabbitmq-server start
 
-  # force reset and restart rabbitmq
-  ${RABBITMQ_INIT} status && ${RABBITMQ_INIT} stop
-  [ -f /var/lib/rabbitmq/mnesia/ ] && rm -rf /var/lib/rabbitmq/mnesia/
-  ${RABBITMQ_INIT} start
+  elif [ -x /etc/init.d/rabbitmq ]; then
+
+    /etc/init.d/rabbitmq status && /etc/init.d/rabbitmq stop
+    [ -d /var/lib/rabbitmq/mnesia/ ] && rm -rf /var/lib/rabbitmq/mnesia/ && mkdir -m 0770 /var/lib/rabbitmq/mnesia && chown rabbitmq:rabbitmq /var/lib/rabbitmq/mnesia
+    /etc/init.d/rabbitmq start
+
+  else
+
+    abort "rabbitmq init script not found is rabbitmq installed?"
+
+  fi
 
   [[ -x /etc/init.d/tgt ]] && { init_control restart tgt; }
 
@@ -371,10 +377,22 @@ EOF
   fi
 
   # Wait for until all agent nodes become online.
-  retry 10 <<'EOF' || abort "Offline nodes still exist."
+  case $database_type in
+  postgresql)
+    retry 10 <<'EOF' || abort "Offline nodes still exist."
 sleep 5
-[ ${nodes} -eq "`echo "select state from node_states where state='online'" | $(${db_admin_login} wakame_dcmgr) | wc -l`" ]
+echo "select * from node_states where state='online'" | psql -Upostgres wakame_dcmgr
+[ ${nodes} -eq "`echo "select state from node_states where state='online'" | psql -Upostgres -t wakame_dcmgr | grep -v '^$' | wc -l`" ]
 EOF
+    ;;
+
+  mysql)
+    retry 10 <<'EOF' || abort "Offline nodes still exist."
+sleep 5
+[ ${nodes} -eq "`echo "select state from node_states where state='online'" | mysql -uroot wakame_dcmgr | wc -l`" ]
+EOF
+    ;;
+  esac 
 }
 
 function check_ready_multiple {

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require 'isono/models/node_state'
+require 'dcmgr/models/account_resource'
 
 module Dcmgr::Models
   class HostNode < AccountResource(:host_nodes)
