@@ -8,7 +8,7 @@ module Dcmgr::Cli
       @exit_code = exit_code
     end
 
-    def self.raise(msg, exit_code)
+    def self.raise(msg, exit_code=1)
       Kernel.raise(if msg.is_a?(self)
                      msg
                    else
